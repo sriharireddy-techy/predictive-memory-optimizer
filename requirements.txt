@@ -1,0 +1,10 @@
+# Core system monitoring and OS metrics collection
+psutil>=5.9.0
+
+# Testing and verification
+pytest>=8.0.0
+
+# Future phases (Visualization, Interactive UI, Analysis)
+streamlit>=1.30.0
+matplotlib>=3.8.0
+plotly>=5.18.0
