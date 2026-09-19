@@ -237,16 +237,26 @@ class MetricsDatabase:
         cursor.execute(query, params)
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_active_pids_in_window(self, window_seconds: float) -> List[int]:
+    def get_active_pids_in_window(
+        self,
+        window_seconds: float,
+        anchor_time: Optional[float] = None,
+    ) -> List[int]:
         """
-        Return all unique PIDs recorded within the last `window_seconds`.
+        Return all unique PIDs recorded within the window [anchor_time - window_seconds, anchor_time].
+        If anchor_time is None, defaults to the latest recorded timestamp in the database (or current time).
         """
-        cutoff = time.time() - window_seconds
         cursor = self.connection.cursor()
+        if anchor_time is None:
+            cursor.execute("SELECT MAX(timestamp) FROM process_snapshots;")
+            row = cursor.fetchone()
+            anchor_time = float(row[0]) if (row and row[0] is not None) else time.time()
+
+        cutoff = anchor_time - window_seconds
         cursor.execute("""
             SELECT DISTINCT pid FROM process_snapshots
-            WHERE timestamp >= ? ORDER BY pid ASC;
-        """, (cutoff,))
+            WHERE timestamp >= ? AND timestamp <= ? ORDER BY pid ASC;
+        """, (cutoff, anchor_time))
         return [row[0] for row in cursor.fetchall()]
 
     def get_latest_snapshot(self) -> Optional[Dict[str, Any]]:
