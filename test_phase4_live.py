@@ -1,88 +1,114 @@
-"""
-Phase 4 Live Demonstration Script:
-Evaluates real-time Memory Pressure, Abnormal Growth, and Ranked Impact Scores.
-"""
-
 from src.storage.database import MetricsDatabase
 from src.detection.service import run_detection
-from src.collector.monitor import collect_snapshot
-from src.storage.service import record_current_snapshot
 
 
 def main():
-    db_path = "data/memory_monitor.db"
-    db = MetricsDatabase(db_path)
+    db = MetricsDatabase("data/memory_monitor.db")
 
-    print("=" * 110)
-    print("PHASE 4 - MEMORY PRESSURE & PROCESS IMPACT SCORING")
-    print("=" * 110)
+    print("=" * 100)
+    print("PHASE 4 - LIVE MEMORY DETECTION")
+    print("=" * 100)
 
-    # 1. Ensure at least one fresh live snapshot is recorded into the database
-    print("\n[+] Capturing current live snapshot into database...")
-    record_current_snapshot(db, top_n=25)
-
-    # 2. Run detection assessment
-    print("[+] Running Phase 4 detection and impact scoring analysis...")
-    report = run_detection(db, window_seconds=120.0)
-
-    # 3. System Memory Pressure Evaluation
-    pressure = report.system_pressure
-    print("\nSYSTEM MEMORY PRESSURE EVALUATION")
-    print("-" * 110)
-    print(f"State                   : {pressure.state.value}")
-    print(f"Composite Pressure Score: {pressure.score:.2f} / 100.0")
-    print(f"Physical RAM Used       : {pressure.ram_used_percent:.2f}% ({pressure.used_ram_mb:.1f} MB / {pressure.total_ram_mb:.1f} MB)")
-    print(f"Available Physical RAM  : {pressure.available_ram_mb:.1f} MB")
-    print(f"Swap Space Used         : {pressure.swap_used_percent:.2f}% ({pressure.swap_used_mb:.1f} MB)")
-    print(f"Rate of RAM Change      : {pressure.rate_percent_s:+.4f}%/s")
-    print(f"Explanation             : {pressure.explanation}")
-    if pressure.contributing_factors:
-        print("Contributing Factors    :")
-        for factor in pressure.contributing_factors:
-            print(f"  * {factor}")
-
-    # 4. Abnormal Process Growth Detection
-    print("\nABNORMAL PROCESS GROWTH DETECTIONS")
-    print("-" * 110)
-    abnormal = [p for p in report.abnormal_processes if p.is_abnormal]
-    if abnormal:
-        for p in abnormal:
-            flags_str = ", ".join(f.value for f in p.flags)
-            print(f"PID {p.pid:<6} | {p.name:<25} | Severity: {p.severity.value:<8} | Flags: {flags_str}")
-            print(f"   Rate: +{p.growth_rate_mb_s:.2f} MB/s | Persistence: {p.persistence_score*100:.1f}% | RSS: {p.current_rss_mb:.1f} MB")
-            for r in p.reasons:
-                print(f"   - {r}")
-    else:
-        print("No processes currently exhibiting abnormal or sustained growth patterns.")
-
-    # 5. Composite Process Impact Scores (Top 10)
-    print("\nTOP PROCESSES BY COMPOSITE IMPACT SCORE")
-    print("Formulation: Impact = (0.40 * M_hat) + (0.35 * G_hat) + (0.25 * P_hat)")
-    print("-" * 110)
-    print(
-        f"{'Rank':<6}"
-        f"{'PID':<8}"
-        f"{'Process Name':<25}"
-        f"{'RSS (MB)':<12}"
-        f"{'Growth MB/s':<14}"
-        f"{'Persistence':<14}"
-        f"{'Impact Score':<14}"
+    report = run_detection(
+        db,
+        window_seconds=60.0
     )
-    print("-" * 110)
 
-    for impact in report.ranked_impact_scores[:10]:
-        pct_str = f"{impact.persistence_score * 100:.1f}%"
+    # --------------------------------------------------
+    # SYSTEM MEMORY PRESSURE
+    # --------------------------------------------------
+
+    pressure = report.system_pressure
+
+    print("\nSYSTEM MEMORY PRESSURE")
+    print("-" * 100)
+
+    print(f"RAM Usage       : {pressure.ram_used_percent:.2f}%")
+    print(f"Available RAM   : {pressure.available_ram_mb:.2f} MB")
+    print(f"Swap Usage      : {pressure.swap_used_percent:.2f}%")
+    print(f"Pressure State  : {pressure.state.value}")
+    print(f"Pressure Score  : {pressure.score:.2f}")
+
+    print("\nContributing Factors:")
+
+    if pressure.contributing_factors:
+        for factor in pressure.contributing_factors:
+            print(f"  - {factor}")
+    else:
+        print("  None")
+
+    print(f"\nExplanation:")
+    print(pressure.explanation)
+
+    # --------------------------------------------------
+    # ABNORMAL PROCESSES
+    # --------------------------------------------------
+
+    print("\n\nABNORMAL PROCESSES")
+    print("-" * 100)
+
+    if not report.abnormal_processes:
+        print("No abnormal processes detected.")
+    else:
+        for process in report.abnormal_processes:
+            print(f"\nPID          : {process.pid}")
+            print(f"Process      : {process.name}")
+            print(f"Abnormal     : {process.is_abnormal}")
+            print(f"Severity     : {process.severity.value}")
+
+            print("Flags        :")
+            for flag in process.flags:
+                print(f"  - {flag.value}")
+
+            print(f"Explanation  : {process.explanation}")
+
+    # --------------------------------------------------
+    # PROCESS IMPACT SCORES
+    # --------------------------------------------------
+
+    print("\n\nPROCESS IMPACT SCORES")
+    print("-" * 100)
+
+    if not report.ranked_impact_scores:
+        print("No process impact scores available.")
+    else:
         print(
-            f"{impact.rank:<6}"
-            f"{impact.pid:<8}"
-            f"{impact.name[:24]:<25}"
-            f"{impact.current_rss_mb:<12.1f}"
-            f"{impact.growth_rate_mb_s:<14.2f}"
-            f"{pct_str:<14}"
-            f"{impact.impact_score:<14.4f}"
+            f"{'Rank':<8}"
+            f"{'PID':<8}"
+            f"{'Process':<25}"
+            f"{'Score':<10}"
         )
 
-    print("=" * 110)
+        print("-" * 100)
+
+        for impact in report.ranked_impact_scores[:15]:
+            print(
+                f"{impact.rank:<8}"
+                f"{impact.pid:<8}"
+                f"{impact.name[:24]:<25}"
+                f"{impact.impact_score:<10.4f}"
+            )
+
+    # --------------------------------------------------
+    # HIGHEST IMPACT PROCESS
+    # --------------------------------------------------
+
+    print("\n\nHIGHEST IMPACT PROCESS")
+    print("-" * 100)
+
+    highest = report.highest_impact_process
+
+    if highest:
+        print(f"PID          : {highest.pid}")
+        print(f"Process      : {highest.name}")
+        print(f"Impact Score : {highest.impact_score:.4f}")
+        print(f"Rank         : {highest.rank}")
+    else:
+        print("No high-impact process identified.")
+
+    print("\n" + "=" * 100)
+
+    db.close()
 
 
 if __name__ == "__main__":

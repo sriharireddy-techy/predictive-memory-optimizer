@@ -88,8 +88,8 @@ Safety is a core requirement of this project:
 | **Phase 2** | Historical Memory Storage (SQLite time-series) | Completed |
 | **Phase 3** | Memory Behaviour & Growth Analysis (growth rate, persistence) | Completed |
 | **Phase 4** | Memory Pressure & Process Impact Scoring | Completed |
-| **Phase 5** | Predictive Memory Pressure Analysis (trend forecasting) | In Progress (Next) |
-| **Phase 6** | Safe Resource Recommendation Engine | Pending |
+| **Phase 5** | Predictive Memory Pressure Analysis (trend forecasting) | Completed |
+| **Phase 6** | Safe Resource Recommendation Engine | In Progress (Next) |
 | **Phase 7** | Interactive Monitoring Dashboard (Streamlit) | Pending |
 | **Phase 8** | Controlled Experiments & Evaluation (workload benchmarks) | Pending |
 | **Phase 9** | Final Documentation, Demo & Viva Preparation | Pending |
