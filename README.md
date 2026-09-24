@@ -83,12 +83,12 @@ Safety is a core requirement of this project:
 
 | Phase | Description | Status |
 |---|---|---|
-| **Phase 0** | Project Planning, Workspace Setup & Architecture Specification | In Progress |
-| **Phase 1** | Process and Memory Monitoring (psutil snapshots) | Pending |
-| **Phase 2** | Historical Memory Storage (SQLite time-series) | Pending |
-| **Phase 3** | Memory Behaviour & Growth Analysis (growth rate, persistence) | Pending |
-| **Phase 4** | Memory Pressure & Process Impact Scoring | Pending |
-| **Phase 5** | Predictive Memory Pressure Analysis (trend forecasting) | Pending |
+| **Phase 0** | Project Planning, Workspace Setup & Architecture Specification | Completed |
+| **Phase 1** | Process and Memory Monitoring (psutil snapshots) | Completed |
+| **Phase 2** | Historical Memory Storage (SQLite time-series) | Completed |
+| **Phase 3** | Memory Behaviour & Growth Analysis (growth rate, persistence) | Completed |
+| **Phase 4** | Memory Pressure & Process Impact Scoring | Completed |
+| **Phase 5** | Predictive Memory Pressure Analysis (trend forecasting) | In Progress (Next) |
 | **Phase 6** | Safe Resource Recommendation Engine | Pending |
 | **Phase 7** | Interactive Monitoring Dashboard (Streamlit) | Pending |
 | **Phase 8** | Controlled Experiments & Evaluation (workload benchmarks) | Pending |
