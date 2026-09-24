@@ -89,8 +89,8 @@ Safety is a core requirement of this project:
 | **Phase 3** | Memory Behaviour & Growth Analysis (growth rate, persistence) | Completed |
 | **Phase 4** | Memory Pressure & Process Impact Scoring | Completed |
 | **Phase 5** | Predictive Memory Pressure Analysis (trend forecasting) | Completed |
-| **Phase 6** | Safe Resource Recommendation Engine | In Progress (Next) |
-| **Phase 7** | Interactive Monitoring Dashboard (Streamlit) | Pending |
+| **Phase 6** | Safe Resource Recommendation Engine | Completed |
+| **Phase 7** | Interactive Monitoring Dashboard (Streamlit) | In Progress (Next) |
 | **Phase 8** | Controlled Experiments & Evaluation (workload benchmarks) | Pending |
 | **Phase 9** | Final Documentation, Demo & Viva Preparation | Pending |
 
