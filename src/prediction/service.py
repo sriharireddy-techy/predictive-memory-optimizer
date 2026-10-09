@@ -133,3 +133,42 @@ def run_prediction(
         system_forecast=sys_forecast,
         process_forecasts=proc_forecasts,
     )
+if __name__ == "__main__":
+    db = MetricsDatabase("data/memory_monitor.db")
+    p = run_optimization(db)
+
+    print("\n" + "=" * 70)
+    print("PHASE 6 - SAFE RESOURCE RECOMMENDATION ENGINE")
+    print("=" * 70)
+
+    print(f"System Pressure State     : {p.system_pressure.state.value}")
+
+    trajectory = p.forecast.trajectory.value if p.forecast else "N/A"
+    print(f"Predicted Trajectory      : {trajectory}")
+
+    print(f"Overall Plan Urgency      : {p.overall_urgency.value}")
+    print(f"Simulated Reclaimable RSS : "
+          f"{p.simulated_reclaimable_rss_mb:.1f} MB")
+    print(f"Projected RAM After       : "
+          f"{p.projected_system_ram_percent_after:.2f}%")
+
+    print("\nEXECUTIVE SUMMARY")
+    print("-" * 70)
+    print(p.summary)
+
+    print("\nSAFETY NOTICE")
+    print("-" * 70)
+    print(p.safety_notice)
+
+    print("\nRECOMMENDATIONS")
+    print("-" * 70)
+
+    for i, r in enumerate(p.recommendations, 1):
+        print(f"\n{i}. {r.process_name} (PID {r.pid})")
+        print(f"   Action        : {r.action_type.value}")
+        print(f"   Urgency       : {r.urgency.value}")
+        print(f"   Current RSS   : {r.current_rss_mb:.1f} MB")
+        print(f"   Simulated RSS : {r.projected_reclaimable_mb:.1f} MB")
+        print(f"   Reason        : {r.reasoning}")
+
+    print("\n" + "=" * 70)
