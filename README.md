@@ -90,7 +90,7 @@ Safety is a core requirement of this project:
 | **Phase 4** | Memory Pressure & Process Impact Scoring | Completed |
 | **Phase 5** | Predictive Memory Pressure Analysis (trend forecasting) | Completed |
 | **Phase 6** | Safe Resource Recommendation Engine | Completed |
-| **Phase 7** | Interactive Monitoring Dashboard (Streamlit) | In Progress (Next) |
+| **Phase 7** | Interactive Monitoring Dashboard (Streamlit) | Completed |
 | **Phase 8** | Controlled Experiments & Evaluation (workload benchmarks) | Pending |
 | **Phase 9** | Final Documentation, Demo & Viva Preparation | Pending |
 
@@ -132,3 +132,34 @@ predictive-memory-optimizer/
    ```bash
    pytest tests/
    ```
+
+## 8. Dashboard (Phase 7)
+
+The **Memory Intelligence** interactive Streamlit dashboard integrates all phases (1-6) into a single, real-time observability platform.
+
+**Features:**
+- Real-time System KPI metrics (RAM Used, Pressure State, Time-to-Critical forecast)
+- Interactive Plotly area charts for historical memory utilization vs thresholds
+- Process Intelligence Explorer with abnormal-growth flagging and impact scoring
+- Predictive trajectory modeling (with projected confidence scores and horizons)
+- Safe, advisory-only remediation plans (does *not* automatically kill processes)
+
+**How to Launch:**
+1. Activate the Python virtual environment (if not already active):
+   ```powershell
+   .\.venv\Scripts\Activate.ps1
+   ```
+2. Install any newly added dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run the dashboard launcher from the root directory:
+   ```bash
+   python run_dashboard.py
+   ```
+   *(Alternatively, run `streamlit run src/dashboard/app.py` directly).*
+
+**Known Limitations & Safe-Use Notes:**
+- **No Auto-Kill**: The dashboard is strictly advisory. Clicking refresh or generating plans will never terminate processes.
+- **Snapshot Rate-Limiting**: To avoid heavy SQLite I/O, the UI does not capture a snapshot on every UI interaction. Use the explicit "Capture Snapshot & Refresh" button to ingest new system telemetry.
+- **Forecast Availability**: If there are fewer than 2 snapshots in the database, the forecast and time-to-critical estimates will be safely disabled until sufficient history is gathered.
