@@ -2,7 +2,8 @@
 Phase 7: Interactive Plotly Chart Generators.
 
 Provides data visualization for historical time-series telemetry,
-multi-horizon predictive forecasting, and process memory distributions.
+multi-horizon predictive forecasting, and process memory distributions
+under a professional light theme.
 """
 
 import datetime
@@ -10,14 +11,15 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import plotly.graph_objects as go
 
-# Theme Colors
-COLOR_NORMAL = "#00FFFF"      # Cyan
-COLOR_MODERATE = "#FFC107"    # Amber
-COLOR_HIGH = "#FF9800"        # Orange
-COLOR_CRITICAL = "#EF4444"    # Red / Rose
-COLOR_FORECAST = "#A855F7"    # Purple
-COLOR_MUTED = "#94A3B8"       # Slate
-COLOR_GRID = "#1E293B"        # Dark Slate Grid
+# Professional Light Theme Palette
+COLOR_NORMAL = "#2563EB"      # Professional Blue (Telemetry)
+COLOR_MODERATE = "#D97706"    # Amber (Warnings)
+COLOR_HIGH = "#EA580C"        # Orange
+COLOR_CRITICAL = "#DC2626"    # Red / Rose (Critical)
+COLOR_FORECAST = "#7C3AED"    # Purple (Projections)
+COLOR_MUTED = "#64748B"       # Slate Muted Text
+COLOR_GRID = "#E2E8F0"        # Light Grid Line
+COLOR_TEXT_PRIMARY = "#0F172A"# Dark Navy Headings / Text
 
 
 def create_historical_ram_chart(
@@ -26,10 +28,12 @@ def create_historical_ram_chart(
     warning_percent: float = 85.0,
     critical_percent: float = 92.0,
     auto_scale_y: bool = False,
+    selected_snapshot_id: Optional[int] = None,
 ) -> go.Figure:
     """
     Generate an interactive historical RAM utilization area chart with
-    crisp datetime formatting, visible sample points, and threshold references.
+    crisp datetime formatting, visible sample points, threshold references,
+    and support for selected snapshot point highlighting.
     """
     fig = go.Figure()
 
@@ -41,8 +45,8 @@ def create_historical_ram_chart(
             font=dict(size=14, color=COLOR_MUTED)
         )
         fig.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="#FFFFFF",
+            paper_bgcolor="#FFFFFF",
             xaxis=dict(showgrid=False, showticklabels=False),
             yaxis=dict(showgrid=False, showticklabels=False),
             height=320,
@@ -52,7 +56,7 @@ def create_historical_ram_chart(
     # Sanitize and sort records chronologically
     df = pd.DataFrame(history_data)
     df = df.dropna(subset=['timestamp', 'percent_used']).sort_values('timestamp')
-    df['datetime'] = pd.to_datetime(df['timestamp'], unit='s')
+    df['datetime'] = [datetime.datetime.fromtimestamp(float(t)) for t in df['timestamp']]
 
     # Extract threshold values from thresholds object if provided
     if thresholds is not None:
@@ -65,13 +69,32 @@ def create_historical_ram_chart(
         elif hasattr(thresholds, 'high_max_percent') and not hasattr(thresholds, 'critical_min_percent'):
             critical_percent = float(thresholds.high_max_percent)
 
-    # Build custom hover metadata
+    # Build custom hover metadata: used_mb, avail_mb, tot_mb, status, snap_id, used_gb, avail_gb, tot_gb
     customdata = []
     for _, row in df.iterrows():
-        used_mb = row.get('used_ram_mb', 0.0)
-        avail_mb = row.get('available_ram_mb', 0.0)
-        tot_mb = row.get('total_ram_mb', 16384.0)
-        customdata.append([used_mb, avail_mb, tot_mb])
+        used_mb = float(row.get('used_ram_mb', 0.0))
+        avail_mb = float(row.get('available_ram_mb', 0.0))
+        tot_mb = float(row.get('total_ram_mb', 16384.0))
+        pct = float(row.get('percent_used', 0.0))
+        snap_id = row.get('id', 'N/A')
+        
+        if pct >= critical_percent:
+            status_str = "CRITICAL BREACH"
+        elif pct >= warning_percent:
+            status_str = "WARNING BREACH"
+        else:
+            status_str = "NORMAL"
+
+        customdata.append([
+            used_mb,
+            avail_mb,
+            tot_mb,
+            status_str,
+            snap_id,
+            used_mb / 1024.0,
+            avail_mb / 1024.0,
+            tot_mb / 1024.0,
+        ])
 
     # System RAM Trace: lines+markers ensures single/few points are always visible!
     fig.add_trace(go.Scatter(
@@ -80,19 +103,39 @@ def create_historical_ram_chart(
         mode='lines+markers',
         name='Observed RAM (%)',
         line=dict(color=COLOR_NORMAL, width=2.5),
-        marker=dict(size=6, color=COLOR_NORMAL, symbol='circle', line=dict(width=1, color='#FFFFFF')),
+        marker=dict(size=7, color=COLOR_NORMAL, symbol='circle', line=dict(width=1.5, color='#FFFFFF')),
         fill='tozeroy',
-        fillcolor='rgba(0, 240, 255, 0.12)',
+        fillcolor='rgba(37, 99, 235, 0.08)',
         customdata=customdata,
         hovertemplate=(
             "<b>%{x|%Y-%m-%d %H:%M:%S}</b><br>"
-            "RAM Utilized: <b>%{y:.1f}%</b><br>"
-            "Used Memory: %{customdata[0]:,.0f} MB<br>"
-            "Available Memory: %{customdata[1]:,.0f} MB<br>"
-            "Total RAM: %{customdata[2]:,.0f} MB"
+            "RAM Utilized: <b>%{y:.1f}%</b> (%{customdata[3]})<br>"
+            "Used Memory: %{customdata[0]:,.0f} MB (%{customdata[5]:.2f} GB)<br>"
+            "Available Headroom: %{customdata[1]:,.0f} MB (%{customdata[6]:.2f} GB)<br>"
+            "Total RAM: %{customdata[2]:,.0f} MB (%{customdata[7]:.2f} GB)<br>"
+            "Snapshot ID: #%{customdata[4]}"
             "<extra></extra>"
         )
     ))
+
+    # Highlight selected snapshot point if present in dataset
+    if selected_snapshot_id is not None and 'id' in df.columns:
+        sel_row = df[df['id'] == selected_snapshot_id]
+        if not sel_row.empty:
+            fig.add_trace(go.Scatter(
+                x=sel_row['datetime'],
+                y=sel_row['percent_used'],
+                mode='markers',
+                name='Selected Snapshot',
+                marker=dict(
+                    size=14,
+                    color='rgba(37, 99, 235, 0.2)',
+                    symbol='circle',
+                    line=dict(width=3, color=COLOR_TEXT_PRIMARY)
+                ),
+                hoverinfo='skip',
+                showlegend=False,
+            ))
 
     # Add warning threshold reference line
     fig.add_hline(
@@ -102,7 +145,7 @@ def create_historical_ram_chart(
         line_width=1.5,
         annotation_text=f"Warning ({warning_percent:.0f}%)",
         annotation_position="top left",
-        annotation_font=dict(color=COLOR_MODERATE, size=11),
+        annotation_font=dict(color=COLOR_MODERATE, size=11, family="Inter, sans-serif"),
     )
 
     # Add critical threshold reference line
@@ -113,7 +156,7 @@ def create_historical_ram_chart(
         line_width=1.5,
         annotation_text=f"Critical ({critical_percent:.0f}%)",
         annotation_position="top left",
-        annotation_font=dict(color=COLOR_CRITICAL, size=11),
+        annotation_font=dict(color=COLOR_CRITICAL, size=11, family="Inter, sans-serif"),
     )
 
     # Y-axis bounds
@@ -123,21 +166,32 @@ def create_historical_ram_chart(
     fig.update_layout(
         title=dict(
             text=f"Historical RAM Utilization ({len(df)} Telemetry Snapshots)",
-            font=dict(size=14, color="#FFFFFF", family="Inter, sans-serif"),
+            font=dict(size=14, color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif"),
             x=0.01,
             y=0.96,
         ),
         margin=dict(l=40, r=20, t=40, b=30),
         height=320,
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="#FFFFFF",
         hovermode="x unified",
+        hoverlabel=dict(
+            bgcolor="#FFFFFF",
+            bordercolor="#CBD5E1",
+            font=dict(color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif", size=12)
+        ),
         xaxis=dict(
             title=dict(text="Timeline", font=dict(size=11, color=COLOR_MUTED)),
             showgrid=True,
             gridcolor=COLOR_GRID,
             color=COLOR_MUTED,
-            tickformat="%H:%M:%S",
+            tickformatstops=[
+                dict(dtickrange=[None, 1000], value="%H:%M:%S.%L"),
+                dict(dtickrange=[1000, 60000], value="%H:%M:%S"),
+                dict(dtickrange=[60000, 3600000], value="%H:%M:%S"),
+                dict(dtickrange=[3600000, 86400000], value="%H:%M"),
+                dict(dtickrange=[86400000, None], value="%Y-%m-%d %H:%M"),
+            ],
             hoverformat="%Y-%m-%d %H:%M:%S",
             nticks=8,
             zeroline=False,
@@ -151,7 +205,7 @@ def create_historical_ram_chart(
             ticksuffix="%",
             zeroline=False,
         ),
-        font=dict(color="#E2E8F0", family="Inter, sans-serif"),
+        font=dict(color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif"),
         showlegend=False,
     )
 
@@ -166,7 +220,7 @@ def create_forecast_chart(
 ) -> go.Figure:
     """
     Generate an interactive forecasting chart clearly separating observed historical
-    telemetry from forward-looking multi-step OLS linear projections.
+    telemetry from forward-looking multi-step OLS linear projections under the light theme.
     """
     fig = go.Figure()
 
@@ -178,8 +232,8 @@ def create_forecast_chart(
             font=dict(size=14, color=COLOR_MUTED)
         )
         fig.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="#FFFFFF",
+            paper_bgcolor="#FFFFFF",
             xaxis=dict(showgrid=False, showticklabels=False),
             yaxis=dict(showgrid=False, showticklabels=False),
             height=340,
@@ -190,7 +244,7 @@ def create_forecast_chart(
     if history_data:
         df_hist = pd.DataFrame(history_data)
         df_hist = df_hist.dropna(subset=['timestamp', 'percent_used']).sort_values('timestamp')
-        df_hist['datetime'] = pd.to_datetime(df_hist['timestamp'], unit='s')
+        df_hist['datetime'] = [datetime.datetime.fromtimestamp(float(t)) for t in df_hist['timestamp']]
 
         fig.add_trace(go.Scatter(
             x=df_hist['datetime'],
@@ -198,21 +252,21 @@ def create_forecast_chart(
             mode='lines+markers',
             name='Observed Telemetry',
             line=dict(color=COLOR_NORMAL, width=2.5),
-            marker=dict(size=5, color=COLOR_NORMAL),
+            marker=dict(size=5, color=COLOR_NORMAL, line=dict(width=1, color='#FFFFFF')),
             fill='tozeroy',
-            fillcolor='rgba(0, 240, 255, 0.10)',
+            fillcolor='rgba(37, 99, 235, 0.08)',
             hovertemplate="<b>Observed Telemetry</b>: %{y:.1f}% at %{x|%H:%M:%S}<extra></extra>",
         ))
 
     # 2. Forecast Projected Segment
     if forecast and hasattr(forecast, 'projections') and forecast.projections:
-        current_dt = pd.to_datetime(forecast.timestamp, unit='s')
+        current_dt = datetime.datetime.fromtimestamp(float(forecast.timestamp))
         proj_dts = [current_dt]
         proj_vals = [forecast.current_percent]
         proj_labels = ["Current Reference (T₀)"]
 
         for p in forecast.projections:
-            proj_dts.append(pd.to_datetime(p.timestamp, unit='s'))
+            proj_dts.append(datetime.datetime.fromtimestamp(float(p.timestamp)))
             proj_vals.append(p.projected_ram_percent)
             proj_labels.append(f"Forecast Horizon (+{p.horizon_seconds:.0f}s)")
 
@@ -235,7 +289,7 @@ def create_forecast_chart(
         line_width=1.5,
         annotation_text=f"Warning ({warning_percent:.0f}%)",
         annotation_position="top left",
-        annotation_font=dict(color=COLOR_MODERATE, size=11),
+        annotation_font=dict(color=COLOR_MODERATE, size=11, family="Inter, sans-serif"),
     )
 
     fig.add_hline(
@@ -245,7 +299,7 @@ def create_forecast_chart(
         line_width=1.5,
         annotation_text=f"Critical ({critical_percent:.0f}%)",
         annotation_position="top left",
-        annotation_font=dict(color=COLOR_CRITICAL, size=11),
+        annotation_font=dict(color=COLOR_CRITICAL, size=11, family="Inter, sans-serif"),
     )
 
     # 4. Breach Markers
@@ -258,13 +312,13 @@ def create_forecast_chart(
                 x=0.98, y=0.95, showarrow=False,
                 align="right",
                 font=dict(size=11, color=COLOR_CRITICAL, weight="bold"),
-                bgcolor="rgba(239, 68, 68, 0.15)",
+                bgcolor="#FEE2E2",
                 bordercolor=COLOR_CRITICAL,
                 borderwidth=1,
                 borderpad=4,
             )
         elif cb.is_breach_predicted and cb.breach_timestamp is not None:
-            breach_dt = pd.to_datetime(cb.breach_timestamp, unit='s')
+            breach_dt = datetime.datetime.fromtimestamp(float(cb.breach_timestamp))
             fig.add_vline(
                 x=breach_dt.timestamp() * 1000,
                 line_dash="dashdot",
@@ -282,15 +336,20 @@ def create_forecast_chart(
     fig.update_layout(
         title=dict(
             text=f"Predictive RAM Trajectory & Future Horizon Extrapolations{title_suffix}",
-            font=dict(size=14, color="#FFFFFF", family="Inter, sans-serif"),
+            font=dict(size=14, color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif"),
             x=0.01,
             y=0.96,
         ),
         margin=dict(l=40, r=20, t=40, b=30),
         height=340,
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="#FFFFFF",
         hovermode="x unified",
+        hoverlabel=dict(
+            bgcolor="#FFFFFF",
+            bordercolor="#CBD5E1",
+            font=dict(color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif", size=12)
+        ),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -318,7 +377,7 @@ def create_forecast_chart(
             ticksuffix="%",
             zeroline=False,
         ),
-        font=dict(color="#E2E8F0", family="Inter, sans-serif"),
+        font=dict(color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif"),
     )
 
     return fig
@@ -329,7 +388,8 @@ def create_process_memory_bar_chart(
     top_n: int = 8
 ) -> go.Figure:
     """
-    Generate a horizontal bar chart displaying top memory consumers ranked by impact.
+    Generate a horizontal bar chart displaying top memory consumers ranked by impact
+    styled for the professional light theme.
     """
     if not ranked_impacts:
         fig = go.Figure()
@@ -340,8 +400,8 @@ def create_process_memory_bar_chart(
             font=dict(size=12, color=COLOR_MUTED)
         )
         fig.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="#FFFFFF",
+            paper_bgcolor="#FFFFFF",
             height=260,
         )
         return fig
@@ -373,13 +433,18 @@ def create_process_memory_bar_chart(
     fig.update_layout(
         title=dict(
             text="Top Process Memory Footprints (RSS MB)",
-            font=dict(size=13, color="#FFFFFF", family="Inter, sans-serif"),
+            font=dict(size=13, color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif"),
             x=0.01,
         ),
         margin=dict(l=10, r=20, t=35, b=25),
         height=260,
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="#FFFFFF",
+        hoverlabel=dict(
+            bgcolor="#FFFFFF",
+            bordercolor="#CBD5E1",
+            font=dict(color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif", size=12)
+        ),
         xaxis=dict(
             showgrid=True,
             gridcolor=COLOR_GRID,
@@ -388,10 +453,11 @@ def create_process_memory_bar_chart(
         ),
         yaxis=dict(
             showgrid=False,
-            color=COLOR_MUTED,
+            color=COLOR_TEXT_PRIMARY,
             tickfont=dict(size=11),
         ),
-        font=dict(color="#E2E8F0", family="Inter, sans-serif"),
+        font=dict(color=COLOR_TEXT_PRIMARY, family="Inter, sans-serif"),
     )
 
     return fig
+

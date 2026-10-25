@@ -54,8 +54,8 @@ def main():
     <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem;">
         <span style="font-size: 1.6rem;">🧠</span>
         <div>
-            <div style="font-weight: 800; font-size: 1.05rem; color: #FFFFFF; letter-spacing: -0.01em;">Memory Optimizer</div>
-            <div style="font-size: 0.75rem; color: #94A3B8;">Predictive Pressure Intelligence</div>
+            <div style="font-weight: 800; font-size: 1.05rem; color: #0F172A; letter-spacing: -0.01em;">Memory Optimizer</div>
+            <div style="font-size: 0.75rem; color: #64748B;">Predictive Pressure Intelligence</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -74,7 +74,7 @@ def main():
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("<div style='font-size: 0.8rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.5rem;'>Analysis Window</div>", unsafe_allow_html=True)
+    st.sidebar.markdown("<div style='font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem;'>Analysis Window</div>", unsafe_allow_html=True)
 
     window_minutes = st.sidebar.slider(
         "Historical Window (Minutes)",
@@ -94,7 +94,7 @@ def main():
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("<div style='font-size: 0.8rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.5rem;'>Telemetry Controls</div>", unsafe_allow_html=True)
+    st.sidebar.markdown("<div style='font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem;'>Telemetry Controls</div>", unsafe_allow_html=True)
 
     if st.sidebar.button("⚡ Capture Snapshot & Refresh", use_container_width=True):
         with st.spinner("Recording host telemetry snapshot..."):
@@ -171,7 +171,8 @@ def main():
             plan=plan,
             detection=detection_report,
             forecast=prediction_report.system_forecast if prediction_report else None,
-            latest_system=latest_system
+            latest_system=latest_system,
+            history_data=history_data,
         )
 
         st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
@@ -180,7 +181,7 @@ def main():
         col_main, col_side = st.columns([3, 2])
 
         with col_main:
-            render_historical_chart(history_data, PressureThresholds())
+            render_historical_chart(history_data, PressureThresholds(), db_path=DB_PATH)
             
             # Mini Process Footprint distribution
             if detection_report and detection_report.ranked_impact_scores:

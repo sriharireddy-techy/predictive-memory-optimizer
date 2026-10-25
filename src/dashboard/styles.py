@@ -1,38 +1,38 @@
 """
 Phase 7: Dashboard Styling & Visual Design System.
 
-Provides high-contrast dark theme styles, glassmorphism card layouts,
+Provides professional light theme styling, subtle card layouts,
 status badges, and responsive typography for the Predictive Memory Optimizer UI.
 """
 
 import streamlit as st
 
 def get_custom_css() -> str:
-    """Return the CSS style definitions for the dark theme dashboard."""
+    """Return the CSS style definitions for the professional light theme dashboard."""
     return """
     <style>
     /* Google Fonts Import */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-    /* Global CSS Variables */
+    /* Global CSS Variables - Professional Light Theme */
     :root {
-        --bg-primary: #0A0D14;
-        --bg-card: #131824;
-        --bg-card-hover: #1A2130;
-        --bg-surface: #1E2638;
-        --border-subtle: rgba(255, 255, 255, 0.08);
-        --border-accent: rgba(0, 240, 255, 0.3);
-        --text-primary: #F8FAFC;
-        --text-secondary: #94A3B8;
+        --bg-primary: #F8FAFC;
+        --bg-card: #FFFFFF;
+        --bg-card-hover: #F1F5F9;
+        --bg-surface: #FFFFFF;
+        --border-subtle: #E2E8F0;
+        --border-accent: #CBD5E1;
+        --text-primary: #0F172A;
+        --text-secondary: #475569;
         --text-muted: #64748B;
-        --color-cyan: #00F0FF;
-        --color-blue: #3B82F6;
-        --color-purple: #A855F7;
-        --color-emerald: #10B981;
-        --color-amber: #F59E0B;
-        --color-orange: #F97316;
-        --color-rose: #EF4444;
-        --color-indigo: #6366F1;
+        --color-blue: #2563EB;
+        --color-cyan: #0284C7;
+        --color-purple: #7C3AED;
+        --color-emerald: #16A34A;
+        --color-amber: #D97706;
+        --color-orange: #EA580C;
+        --color-rose: #DC2626;
+        --color-indigo: #4F46E5;
     }
 
     /* Main Container & Background */
@@ -72,33 +72,32 @@ def get_custom_css() -> str:
     .dashboard-title {
         font-size: 1.85rem;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-primary);
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
     .dashboard-subtitle {
         font-size: 0.95rem;
-        color: var(--text-secondary);
+        color: var(--text-muted);
         margin-top: 0.25rem;
     }
 
-    /* Custom Metric Cards */
+    /* Custom Metric Cards - Light Theme */
     .metric-card {
-        background: linear-gradient(135deg, rgba(19, 24, 36, 0.9) 0%, rgba(26, 33, 48, 0.7) 100%);
+        background: #FFFFFF;
         border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 1.25rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
         transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         position: relative;
         overflow: hidden;
     }
     .metric-card:hover {
         transform: translateY(-2px);
-        border-color: rgba(255, 255, 255, 0.16);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        border-color: #CBD5E1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     .metric-card::before {
         content: '';
@@ -106,14 +105,15 @@ def get_custom_css() -> str:
         top: 0;
         left: 0;
         right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, var(--border-accent), transparent);
+        height: 3px;
+        background: var(--color-blue);
     }
-    .metric-card.cyan::before { background: linear-gradient(90deg, transparent, #00F0FF, transparent); }
-    .metric-card.emerald::before { background: linear-gradient(90deg, transparent, #10B981, transparent); }
-    .metric-card.amber::before { background: linear-gradient(90deg, transparent, #F59E0B, transparent); }
-    .metric-card.rose::before { background: linear-gradient(90deg, transparent, #EF4444, transparent); }
-    .metric-card.purple::before { background: linear-gradient(90deg, transparent, #A855F7, transparent); }
+    .metric-card.cyan::before, .metric-card.blue::before { background: #2563EB; }
+    .metric-card.emerald::before { background: #16A34A; }
+    .metric-card.amber::before { background: #D97706; }
+    .metric-card.orange::before { background: #EA580C; }
+    .metric-card.rose::before { background: #DC2626; }
+    .metric-card.purple::before { background: #7C3AED; }
 
     .metric-title {
         font-size: 0.8rem;
@@ -129,7 +129,7 @@ def get_custom_css() -> str:
     .metric-value {
         font-size: 1.85rem;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-primary);
         font-family: 'JetBrains Mono', monospace;
         letter-spacing: -0.03em;
         line-height: 1.2;
@@ -143,7 +143,7 @@ def get_custom_css() -> str:
         gap: 0.35rem;
     }
 
-    /* Badges */
+    /* Badges - Light Theme High Contrast */
     .badge {
         display: inline-flex;
         align-items: center;
@@ -156,53 +156,54 @@ def get_custom_css() -> str:
         line-height: 1;
     }
     .badge-normal {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10B981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        background: #DCFCE7;
+        color: #15803D;
+        border: 1px solid #86EFAC;
     }
     .badge-moderate {
-        background: rgba(245, 158, 11, 0.15);
-        color: #F59E0B;
-        border: 1px solid rgba(245, 158, 11, 0.3);
+        background: #FEF3C7;
+        color: #B45309;
+        border: 1px solid #FCD34D;
     }
     .badge-high {
-        background: rgba(249, 115, 22, 0.15);
-        color: #F97316;
-        border: 1px solid rgba(249, 115, 22, 0.3);
+        background: #FFEDD5;
+        color: #C2410C;
+        border: 1px solid #FDBA74;
     }
     .badge-critical {
-        background: rgba(239, 68, 68, 0.15);
-        color: #EF4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: #FEE2E2;
+        color: #B91C1C;
+        border: 1px solid #FCA5A5;
     }
     .badge-purple {
-        background: rgba(168, 85, 247, 0.15);
-        color: #C084FC;
-        border: 1px solid rgba(168, 85, 247, 0.3);
+        background: #F3E8FF;
+        color: #7E22CE;
+        border: 1px solid #D8B4FE;
     }
-    .badge-cyan {
-        background: rgba(0, 240, 255, 0.15);
-        color: #00F0FF;
-        border: 1px solid rgba(0, 240, 255, 0.3);
+    .badge-cyan, .badge-blue {
+        background: #DBEAFE;
+        color: #1D4ED8;
+        border: 1px solid #93C5FD;
     }
     .badge-protected {
-        background: rgba(99, 102, 241, 0.15);
-        color: #818CF8;
-        border: 1px solid rgba(99, 102, 241, 0.35);
+        background: #EEF2FF;
+        color: #4338CA;
+        border: 1px solid #C7D2FE;
     }
 
     /* Content Cards */
     .content-box {
         background-color: var(--bg-card);
         border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
     .content-box-header {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--text-primary);
         margin-bottom: 1rem;
         display: flex;
         justify-content: space-between;
@@ -213,14 +214,15 @@ def get_custom_css() -> str:
     .rec-card {
         background: var(--bg-card);
         border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 1.25rem;
         margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         transition: all 0.2s ease;
     }
     .rec-card:hover {
-        border-color: rgba(255, 255, 255, 0.15);
-        background: var(--bg-card-hover);
+        border-color: #CBD5E1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
     .rec-card.critical {
         border-left: 4px solid var(--color-rose);
@@ -240,37 +242,37 @@ def get_custom_css() -> str:
 
     /* Safety Notice Banner */
     .safety-banner {
-        background: linear-gradient(90deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 10px;
+        background: #F8FAFC;
+        border: 1px solid #CBD5E1;
+        border-radius: 8px;
         padding: 0.85rem 1.25rem;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        color: #CBD5E1;
+        color: #334155;
         font-size: 0.88rem;
     }
     .safety-banner strong {
-        color: #A5B4FC;
+        color: #1E293B;
     }
 
     /* Streamlit Native Elements Customization */
     div[data-testid="stMetricValue"] {
         font-family: 'JetBrains Mono', monospace !important;
-        color: #FFFFFF !important;
+        color: var(--text-primary) !important;
         font-size: 1.75rem !important;
     }
     
     div[data-testid="stMetricLabel"] {
         color: var(--text-secondary) !important;
         font-size: 0.85rem !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
     }
 
-    /* Sidebar Styling */
+    /* Sidebar Styling - Light Theme */
     section[data-testid="stSidebar"] {
-        background-color: #0c1018 !important;
+        background-color: #F8FAFC !important;
         border-right: 1px solid var(--border-subtle) !important;
     }
     
@@ -282,9 +284,9 @@ def get_custom_css() -> str:
 
     /* Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        background: #2563EB !important;
         color: #FFFFFF !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid #1D4ED8 !important;
         border-radius: 8px !important;
         padding: 0.5rem 1.25rem !important;
         font-weight: 600 !important;
@@ -292,21 +294,21 @@ def get_custom_css() -> str:
         transition: all 0.2s ease !important;
     }
     .stButton > button:hover {
-        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-        border-color: rgba(255, 255, 255, 0.25) !important;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+        background: #1D4ED8 !important;
+        border-color: #1E40AF !important;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25) !important;
         transform: translateY(-1px) !important;
     }
 
     /* Radio navigation styling */
     div[data-testid="stRadio"] > div {
-        background-color: rgba(255, 255, 255, 0.03);
+        background-color: #FFFFFF !important;
         padding: 0.5rem;
-        border-radius: 10px;
+        border-radius: 8px;
         border: 1px solid var(--border-subtle);
     }
     div[data-testid="stRadio"] label {
-        color: var(--text-secondary) !important;
+        color: var(--text-primary) !important;
         font-weight: 500 !important;
         padding: 0.35rem 0.5rem !important;
         border-radius: 6px !important;
@@ -318,16 +320,29 @@ def get_custom_css() -> str:
         padding-bottom: 0.5rem;
     }
 
-    /* Dataframe table dark theme */
+    /* Dataframe table light theme */
     div[data-testid="stDataFrame"] {
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
         border: 1px solid var(--border-subtle);
+        background: #FFFFFF;
     }
 
     /* Progress bar */
     .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #00F0FF, #3B82F6) !important;
+        background: #2563EB !important;
+    }
+
+    /* Investigation highlight box */
+    .investigation-panel {
+        background: #FFFFFF;
+        border: 1px solid #CBD5E1;
+        border-left: 4px solid #2563EB;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     </style>
     """
@@ -335,3 +350,4 @@ def get_custom_css() -> str:
 def inject_custom_css():
     """Inject custom styles into the Streamlit app."""
     st.markdown(get_custom_css(), unsafe_allow_html=True)
+
